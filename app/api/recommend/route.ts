@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { recallBrandMemory } from '@/lib/hindsight';
 import { EvaluationResponse, MarketingExperiment } from '@/types/experiment';
+import { createClient } from '@supabase/supabase-js';
 
 export const dynamic = 'force-dynamic';
 
@@ -99,12 +100,29 @@ function normalizeEvaluation(value: unknown, fallbackSynthesis: string): Evaluat
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json() as { query?: unknown };
+    const body = await request.json() as { query?: unknown; workspace_id?: unknown };
     if (typeof body.query !== 'string' || !body.query.trim()) {
       return NextResponse.json({ error: 'Query is required' }, { status: 400 });
     }
+    if (typeof body.workspace_id !== 'string' || !body.workspace_id) {
+      return NextResponse.json({ error: 'Workspace is required' }, { status: 400 });
+    }
+    const authorization = request.headers.get('authorization');
+    if (!authorization?.startsWith('Bearer ')) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
+    const authClient = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co',
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-anon-key',
+      { global: { headers: { Authorization: authorization } } },
+    );
+    const { data: userData, error: userError } = await authClient.auth.getUser();
+    if (userError || !userData.user) return NextResponse.json({ error: 'Your session is invalid or expired.' }, { status: 401 });
+    const { data: membership } = await authClient.from('workspace_members').select('workspace_id').eq('workspace_id', body.workspace_id).eq('user_id', userData.user.id).maybeSingle();
+    if (!membership) return NextResponse.json({ error: 'You do not have access to this workspace.' }, { status: 403 });
+    const { data: workspaceExperiments } = await authClient.from('experiments').select('*').eq('workspace_id', body.workspace_id).order('created_at', { ascending: false }).limit(30);
 
-    const recallQuery = `Relevant past marketing experiments for this user hypothesis. Include both SUCCESS and FAILURE cases and return the complete experiment details when available. User hypothesis: ${body.query}`;
+    const recallQuery = `Workspace ${body.workspace_id} only. Relevant past marketing experiments for this team hypothesis. Never use memories from another workspace. Include both SUCCESS and FAILURE cases. User hypothesis: ${body.query}`;
     let recalledMemories: unknown[] = [];
     try {
       const recallResponse = await recallBrandMemory(recallQuery);
@@ -121,7 +139,7 @@ export async function POST(request: Request) {
         { role: 'system', content: SYSTEM_PROMPT },
         {
           role: 'user',
-          content: `User strategy or hypothesis:\n${body.query}\n\nRecalled experiment history, including SUCCESS and FAILURE cases:\n${JSON.stringify(recalledMemories, null, 2)}`,
+          content: `Workspace: ${body.workspace_id}\nUser strategy or hypothesis:\n${body.query}\n\nRelational workspace history:\n${JSON.stringify(workspaceExperiments || [], null, 2)}\n\nRecalled workspace memories:\n${JSON.stringify(recalledMemories, null, 2)}`,
         },
       ],
       temperature: 0.2,
