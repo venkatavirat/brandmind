@@ -1,0 +1,3 @@
+export default function TermsPage() {
+  return <main className="min-h-screen bg-white px-5 py-16 text-[#09090B] sm:px-8"><div className="mx-auto max-w-2xl"><a href="/" className="font-mono text-xs uppercase tracking-wider text-[#71717A] hover:text-[#09090B]">BrandMind / Back to workspace</a><h1 className="mt-12 font-display text-5xl font-normal tracking-tight">Terms of Service</h1><p className="mt-6 text-base leading-relaxed text-[#52525B]">BrandMind is a collaborative marketing experiment memory workspace. Use it responsibly, keep credentials private, and only store information your team is authorized to use.</p></div></main>;
+}
