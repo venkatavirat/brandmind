@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #09090b;
-  --foreground: #f4f4f5;
+  --background: #ffffff;
+  --foreground: #18181b;
 }
 
 @theme inline {
@@ -16,4 +16,98 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-geist-sans), sans-serif;
+}
+
+button,
+input,
+textarea,
+select {
+  transition: all 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+main.bg-zinc-950 {
+  background: #ffffff;
+  color: #18181b;
+}
+
+main.bg-zinc-950 .border-zinc-800,
+main.bg-zinc-950 .border-zinc-800\/80,
+main.bg-zinc-950 .border-zinc-700,
+main.bg-zinc-950 .border-zinc-600 {
+  border-color: rgb(228 228 231 / 0.8);
+}
+
+main.bg-zinc-950 .bg-zinc-900\/80,
+main.bg-zinc-950 .bg-zinc-900\/60,
+main.bg-zinc-950 .bg-zinc-900 {
+  background: rgb(250 250 250 / 0.8);
+}
+
+main.bg-zinc-950 .bg-zinc-800,
+main.bg-zinc-950 .bg-zinc-950 {
+  background: #f4f4f5;
+}
+
+main.bg-zinc-950 .bg-black {
+  background: #ffffff;
+}
+
+main.bg-zinc-950 .text-white,
+main.bg-zinc-950 .text-zinc-100,
+main.bg-zinc-950 .text-zinc-200,
+main.bg-zinc-950 .text-zinc-300 {
+  color: #18181b;
+}
+
+main.bg-zinc-950 .text-zinc-400,
+main.bg-zinc-950 .text-zinc-500,
+main.bg-zinc-950 .text-zinc-600,
+main.bg-zinc-950 .text-zinc-700 {
+  color: #52525b;
+}
+
+main.bg-zinc-950 .bg-white {
+  background: #18181b;
+  color: #ffffff;
+}
+
+main.bg-zinc-950 .hover\:bg-zinc-200:hover {
+  background: #3f3f46;
+  color: #ffffff;
+}
+
+main.bg-zinc-950 .focus\:ring-zinc-400:focus,
+main.bg-zinc-950 .focus\:ring-zinc-950:focus {
+  --tw-ring-color: #18181b;
+  --tw-ring-offset-color: #ffffff;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #a1a1aa;
+}
+
+.font-mono {
+  font-family: var(--font-geist-mono), monospace;
+}
+
+main.bg-zinc-950 section,
+main.bg-zinc-950 article,
+main.bg-zinc-950 aside > div,
+main.bg-zinc-950 textarea,
+main.bg-zinc-950 input {
+  border-radius: 0.5rem;
+}
+
+main.bg-zinc-950 .border {
+  transition: border-color 200ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+main.bg-zinc-950 .hover\:border-white:hover {
+  border-color: #a1a1aa;
+}
+
+main.bg-zinc-950 .animate-pulse {
+  animation-duration: 1.5s;
+  background: #f4f4f5;
 }

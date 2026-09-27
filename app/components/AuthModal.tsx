@@ -5,38 +5,13 @@ import { ArrowRight, Loader2, X } from 'lucide-react';
 import type { User } from '@supabase/supabase-js';
 import { supabaseBrowser } from '@/lib/supabase-browser';
 
-type AuthModalProps = { open: boolean; onClose: () => void; onAuthenticated: (user: User, message: string) => void };
+type Props = { open: boolean; onClose: () => void; onAuthenticated: (user: User, message: string) => void };
+const ease = 'transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)]';
 
-export default function AuthModal({ open, onClose, onAuthenticated }: AuthModalProps) {
-  const [mode, setMode] = useState<'sign-in' | 'sign-up'>('sign-in');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [message, setMessage] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
+export default function AuthModal({ open, onClose, onAuthenticated }: Props) {
+  const [mode, setMode] = useState<'sign-in' | 'sign-up'>('sign-in'); const [email, setEmail] = useState(''); const [password, setPassword] = useState(''); const [message, setMessage] = useState(''); const [isSubmitting, setIsSubmitting] = useState(false);
   if (!open) return null;
-
-  const submit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setIsSubmitting(true);
-    setMessage('');
-    const result = mode === 'sign-in'
-      ? await supabaseBrowser.auth.signInWithPassword({ email, password })
-      : await supabaseBrowser.auth.signUp({ email, password });
-    if (result.error) {
-      setMessage(result.error.message);
-    } else if (result.data.user) {
-      onAuthenticated(result.data.user, mode === 'sign-up' && !result.data.session ? 'Check your email to confirm your account.' : 'Authentication successful.');
-      if (result.data.session) onClose();
-    }
-    setIsSubmitting(false);
-  };
-
-  return <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/80 p-0 sm:items-center sm:p-4" role="dialog" aria-modal="true" aria-labelledby="auth-title">
-    <div className="w-full max-w-md border border-zinc-700 bg-zinc-950 p-5 shadow-2xl sm:p-7">
-      <div className="flex items-start justify-between gap-4"><div><p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-500">Private workspace</p><h2 id="auth-title" className="mt-2 text-xl font-semibold text-white">{mode === 'sign-in' ? 'Welcome back' : 'Create your account'}</h2><p className="mt-2 text-xs leading-5 text-zinc-500">Keep experiment memory tied to your team identity.</p></div><button type="button" onClick={onClose} aria-label="Close authentication dialog" className="rounded-md p-2 text-zinc-500 hover:bg-zinc-900 hover:text-white focus:outline-none focus:ring-2 focus:ring-zinc-400"><X className="h-5 w-5" /></button></div>
-      <form onSubmit={submit} className="mt-7 space-y-4"><div><label htmlFor="auth-email" className="mb-2 block text-xs font-medium text-zinc-300">Email</label><input id="auth-email" type="email" required autoComplete="email" value={email} onChange={event => setEmail(event.target.value)} className="h-11 w-full border border-zinc-800 bg-black px-3 text-sm text-white outline-none focus:ring-2 focus:ring-zinc-400" /></div><div><label htmlFor="auth-password" className="mb-2 block text-xs font-medium text-zinc-300">Password</label><input id="auth-password" type="password" required minLength={6} autoComplete={mode === 'sign-in' ? 'current-password' : 'new-password'} value={password} onChange={event => setPassword(event.target.value)} className="h-11 w-full border border-zinc-800 bg-black px-3 text-sm text-white outline-none focus:ring-2 focus:ring-zinc-400" /></div>{message && <p className="border border-zinc-700 bg-zinc-900 px-3 py-3 text-xs leading-5 text-zinc-200" role="alert">{message}</p>}<button type="submit" disabled={isSubmitting} className="flex h-11 w-full items-center justify-center gap-2 bg-white text-sm font-semibold text-black hover:bg-zinc-200 focus:outline-none focus:ring-2 focus:ring-zinc-400 disabled:opacity-60">{isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}{mode === 'sign-in' ? 'Sign in' : 'Create account'}</button></form>
-      <button type="button" onClick={() => { setMode(mode === 'sign-in' ? 'sign-up' : 'sign-in'); setMessage(''); }} className="mt-5 w-full text-center text-xs text-zinc-400 underline-offset-4 hover:text-white hover:underline focus:outline-none focus:ring-2 focus:ring-zinc-400">{mode === 'sign-in' ? 'Need an account? Register' : 'Already registered? Sign in'}</button>
-    </div>
-  </div>;
+  const submit = async (event: FormEvent<HTMLFormElement>) => { event.preventDefault(); setIsSubmitting(true); setMessage(''); const result = mode === 'sign-in' ? await supabaseBrowser.auth.signInWithPassword({ email, password }) : await supabaseBrowser.auth.signUp({ email, password }); if (result.error) setMessage(result.error.message); else if (result.data.user) { onAuthenticated(result.data.user, mode === 'sign-up' && !result.data.session ? 'Check your email to confirm your account.' : 'Authentication successful.'); if (result.data.session) onClose(); } setIsSubmitting(false); };
+  const field = `h-11 w-full rounded-lg border border-zinc-200 bg-white px-3.5 py-2.5 text-sm text-zinc-950 outline-none placeholder:text-zinc-400 focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-950 focus:ring-offset-2 ${ease}`;
+  return <div className="fixed inset-0 z-50 flex items-end justify-center bg-zinc-950/20 p-0 backdrop-blur-sm sm:items-center sm:p-4" role="dialog" aria-modal="true" aria-labelledby="auth-title"><div className={`w-full max-w-md rounded-xl border border-zinc-200 bg-white p-5 shadow-sm animate-in fade-in-0 slide-in-from-bottom-2 duration-200 sm:p-7 ${ease}`}><div className="flex items-start justify-between gap-4"><div><p className="font-mono text-xs uppercase tracking-wider text-zinc-500">Private workspace</p><h2 id="auth-title" className="mt-2 text-xl font-medium tracking-tight text-zinc-950">{mode === 'sign-in' ? 'Welcome back' : 'Create your account'}</h2><p className="mt-2 text-sm leading-relaxed text-zinc-600">Keep experiment memory tied to your team identity.</p></div><button type="button" onClick={onClose} aria-label="Close authentication dialog" className={`rounded-lg p-2 text-zinc-500 hover:bg-zinc-50 hover:text-zinc-950 focus:outline-none focus:ring-2 focus:ring-zinc-950 focus:ring-offset-2 ${ease}`}><X className="h-5 w-5" /></button></div><form onSubmit={submit} className="mt-7 space-y-4"><div><label htmlFor="auth-email" className="mb-2 block text-sm font-medium text-zinc-900">Email</label><input id="auth-email" type="email" required autoComplete="email" value={email} onChange={event => setEmail(event.target.value)} className={field} /></div><div><label htmlFor="auth-password" className="mb-2 block text-sm font-medium text-zinc-900">Password</label><input id="auth-password" type="password" required minLength={6} autoComplete={mode === 'sign-in' ? 'current-password' : 'new-password'} value={password} onChange={event => setPassword(event.target.value)} className={field} /></div>{message && <p className="rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-3 text-sm leading-relaxed text-zinc-700" role="alert">{message}</p>}<button type="submit" disabled={isSubmitting} className={`flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-zinc-950 text-sm font-semibold text-white hover:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-zinc-950 focus:ring-offset-2 disabled:opacity-60 ${ease}`}>{isSubmitting ? <Loader2 className="h-4 w-4 animate-pulse" /> : <ArrowRight className="h-4 w-4" />}{mode === 'sign-in' ? 'Sign in' : 'Create account'}</button></form><button type="button" onClick={() => { setMode(mode === 'sign-in' ? 'sign-up' : 'sign-in'); setMessage(''); }} className={`mt-5 w-full rounded-lg py-2 text-center text-sm text-zinc-600 underline-offset-4 hover:text-zinc-950 hover:underline focus:outline-none focus:ring-2 focus:ring-zinc-950 focus:ring-offset-2 ${ease}`}>{mode === 'sign-in' ? 'Need an account? Register' : 'Already registered? Sign in'}</button></div></div>;
 }
