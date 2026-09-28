@@ -12,12 +12,23 @@ export interface MarketingExperiment {
   outcome_status: 'SUCCESS' | 'FAILURE' | 'INCONCLUSIVE';
   interpretation: string;
   learning: string;
+  strategic_rule?: string;
+  lineage_experiment_ids?: string[];
+  updated_at?: string;
   created_at?: string;
 }
 
+export interface EvaluationTiers {
+  raw_experience: { experiment_ids: string[]; recorded_metrics: string[] };
+  tactical_learning: string;
+  strategic_rule: string;
+}
+
 export interface EvaluationResponse {
-  verdict: 'VALIDATED' | 'CHALLENGED' | 'UNTESTED_HYPOTHESIS';
+  verdict: 'CLEAR' | 'CAUTION' | 'HIGH RISK' | 'VALIDATED' | 'CHALLENGED' | 'UNTESTED_HYPOTHESIS';
   synthesis: string;
   recommended_action: string;
   supporting_experiments: MarketingExperiment[];
+  tiers: EvaluationTiers;
+  suggested_modifications: string[];
 }

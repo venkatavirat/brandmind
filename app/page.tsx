@@ -364,7 +364,7 @@ export default function Dashboard() {
     setBusy(true);
     setError("");
     try {
-      const r = await fetch("/api/recommend", {
+      const r = await fetch("/api/evaluate", {
         method: "POST",
         headers: await headers(),
         body: JSON.stringify({
@@ -394,14 +394,14 @@ export default function Dashboard() {
       workspace_id: activeWorkspace.id,
     };
     try {
-      const r = await fetch("/api/retain", {
+      const r = await fetch("/api/logger", {
         method: "POST",
         headers: await headers(),
         body: JSON.stringify(experiment),
       });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error);
-      setExperiments((x) => [{ ...experiment, id: d.experimentId }, ...x]);
+      setExperiments((x) => [{ ...experiment, id: d.experimentId, strategic_rule: d.refined_rule || undefined, lineage_experiment_ids: d.lineage_experiment_ids }, ...x]);
       setDraft(empty);
       setSelected([]);
       setStep(1);
@@ -467,12 +467,7 @@ export default function Dashboard() {
         ? 84
         : 52
     : 0;
-  const verdict =
-    evaluation?.verdict === "CHALLENGED"
-      ? "HIGH RISK OF DUPLICATION"
-      : evaluation?.verdict === "VALIDATED"
-        ? "CLEAR HYPOTHESIS"
-        : "AWAITING EVIDENCE";
+  const verdict = evaluation?.verdict === "CHALLENGED" ? "HIGH RISK" : evaluation?.verdict === "VALIDATED" ? "CLEAR" : evaluation?.verdict || "CAUTION";
   const input =
     "w-full rounded border border-zinc-200 bg-white px-3.5 py-2.5 text-sm outline-none placeholder:text-zinc-400 focus:border-zinc-950 focus:ring-2 focus:ring-zinc-950 focus:ring-offset-2";
   return (
@@ -617,14 +612,15 @@ export default function Dashboard() {
                       <div className="mt-8 border-t border-zinc-200 pt-7">
                         {evaluation ? (
                           <div>
-                            <div className="flex justify-between border-b border-zinc-200 pb-5">
+                            <div className="border-b border-zinc-200 pb-5">
                               <div>
                                 <p className="font-mono text-xs uppercase tracking-widest text-zinc-500">
-                                  Risk verdict
+                                  1. Recommendation &amp; Risk Verdict
                                 </p>
-                                <p className="mt-2 text-xl">{verdict}</p>
+                                <p className="mt-2 font-display text-4xl">{verdict}</p>
+                                <p className="mt-2 text-sm leading-relaxed text-zinc-600">{evaluation.synthesis}</p>
                               </div>
-                              <div className="text-right">
+                              <div className="mt-5 text-left">
                                 <p className="font-mono text-xs uppercase tracking-widest text-zinc-500">
                                   Confidence
                                 </p>
@@ -633,9 +629,26 @@ export default function Dashboard() {
                                 </p>
                               </div>
                             </div>
-                            <p className="mt-5 text-sm leading-relaxed text-zinc-700">
-                              {evaluation.synthesis}
-                            </p>
+                            <div className="mt-6 border-b border-zinc-200 pb-6">
+                              <p className="font-mono text-xs uppercase tracking-widest text-zinc-500">2. Historical Evidence &amp; Linked Experiments</p>
+                              <div className="mt-4 space-y-3">
+                                {evaluation.tiers.raw_experience.experiment_ids.map((id) => {
+                                  const experiment = evaluation.supporting_experiments.find((item) => item.id === id);
+                                  return <div key={id} className="border-l-2 border-zinc-950 pl-3"><p className="font-mono text-xs">{id}</p><p className="mt-1 text-sm text-zinc-600">{experiment?.result_metrics || "Recorded metric unavailable"}</p></div>;
+                                })}
+                              </div>
+                            </div>
+                            <div className="mt-6 border-b border-zinc-200 pb-6">
+                              <p className="font-mono text-xs uppercase tracking-widest text-zinc-500">3. Level 3 Brand Rule</p>
+                              <p className="mt-3 font-display text-2xl leading-tight">{evaluation.tiers.strategic_rule}</p>
+                              <p className="mt-3 text-sm leading-relaxed text-zinc-600">{evaluation.tiers.tactical_learning}</p>
+                            </div>
+                            <div className="mt-6">
+                              <p className="font-mono text-xs uppercase tracking-widest text-zinc-500">4. Suggested Strategy Modifications</p>
+                              <ul className="mt-3 space-y-2 text-sm text-zinc-700">
+                                {(evaluation.suggested_modifications.length ? evaluation.suggested_modifications : [evaluation.recommended_action]).map((modification) => <li key={modification} className="border-l-2 border-zinc-300 pl-3">{modification}</li>)}
+                              </ul>
+                            </div>
                             <button
                               onClick={() => setBreakdown(true)}
                               className="mt-5 rounded-sm border border-zinc-200 px-4 py-2.5 text-sm"

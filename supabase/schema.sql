@@ -29,6 +29,9 @@ create table if not exists public.experiments (
   outcome_status text not null,
   interpretation text not null,
   learning text not null,
+  strategic_rule text,
+  lineage_experiment_ids uuid[] default '{}',
+  updated_at timestamptz default now(),
   created_at timestamptz default now()
 );
 
@@ -36,6 +39,9 @@ alter table public.experiments enable row level security;
 
 alter table public.experiments add column if not exists user_id uuid references auth.users(id) on delete cascade;
 alter table public.experiments add column if not exists workspace_id uuid references public.workspaces(id) on delete cascade;
+alter table public.experiments add column if not exists strategic_rule text;
+alter table public.experiments add column if not exists lineage_experiment_ids uuid[] default '{}';
+alter table public.experiments add column if not exists updated_at timestamptz default now();
 
 alter table public.workspaces enable row level security;
 alter table public.workspace_members enable row level security;
