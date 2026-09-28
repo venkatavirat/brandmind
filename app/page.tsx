@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import type { User } from "@supabase/supabase-js";
 import AuthModal from "@/app/components/AuthModal";
+import ThemeToggle from "@/app/components/ThemeToggle";
 import WorkspaceSelector from "@/app/components/WorkspaceSelector";
 import { supabaseBrowser } from "@/lib/supabase-browser";
 import type {
@@ -134,6 +135,7 @@ function Landing({ openAuth }: { openAuth: () => void }) {
           >
             Sign In / Register
           </button>
+          <ThemeToggle />
         </div>
       </header>
       <motion.section
@@ -527,6 +529,7 @@ export default function Dashboard() {
                   >
                     Sign out
                   </button>
+                  <ThemeToggle />
                 </div>
               </div>
               <nav className="mt-6 flex overflow-x-auto border-b border-zinc-200">
@@ -542,7 +545,7 @@ export default function Dashboard() {
                       {label}
                       {tab === id && (
                         <motion.span
-                          layoutId="activeTabIndicator"
+                          layoutId="activeTabUnderline"
                           className="absolute inset-x-0 -bottom-px h-0.5 bg-zinc-950"
                           transition={{
                             type: "spring",
@@ -576,9 +579,9 @@ export default function Dashboard() {
                       <p className="font-mono text-xs uppercase tracking-widest text-zinc-500">
                         01 / Evaluator
                       </p>
-                      <h1 className="mt-5 font-serif text-3xl font-normal tracking-tight sm:text-5xl">
+                      <motion.h1 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, delay: 0.08, ease }} className="mt-5 font-serif text-3xl font-normal tracking-tight sm:text-5xl">
                         Intercept the next bad bet.
-                      </h1>
+                      </motion.h1>
                       <p className="mt-4 text-sm leading-relaxed text-zinc-600">
                         What channel, offer, and audience segment are you
                         testing?
@@ -611,8 +614,8 @@ export default function Dashboard() {
                       </form>
                       <div className="mt-8 border-t border-zinc-200 pt-7">
                         {evaluation ? (
-                          <div>
-                            <div className="border-b border-zinc-200 pb-5">
+                          <motion.div layout initial="hidden" animate="visible" variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.08 } } }}>
+                            <motion.div variants={{ hidden: { opacity: 0, height: 0 }, visible: { opacity: 1, height: "auto" } }} className="border-b border-zinc-200 pb-5">
                               <div>
                                 <p className="font-mono text-xs uppercase tracking-widest text-zinc-500">
                                   1. Recommendation &amp; Risk Verdict
@@ -628,8 +631,8 @@ export default function Dashboard() {
                                   {confidence}%
                                 </p>
                               </div>
-                            </div>
-                            <div className="mt-6 border-b border-zinc-200 pb-6">
+                            </motion.div>
+                            <motion.div variants={{ hidden: { opacity: 0, height: 0 }, visible: { opacity: 1, height: "auto" } }} className="mt-6 border-b border-zinc-200 pb-6">
                               <p className="font-mono text-xs uppercase tracking-widest text-zinc-500">2. Historical Evidence &amp; Linked Experiments</p>
                               <div className="mt-4 space-y-3">
                                 {evaluation.tiers.raw_experience.experiment_ids.map((id) => {
@@ -637,25 +640,25 @@ export default function Dashboard() {
                                   return <div key={id} className="border-l-2 border-zinc-950 pl-3"><p className="font-mono text-xs">{id}</p><p className="mt-1 text-sm text-zinc-600">{experiment?.result_metrics || "Recorded metric unavailable"}</p></div>;
                                 })}
                               </div>
-                            </div>
-                            <div className="mt-6 border-b border-zinc-200 pb-6">
+                            </motion.div>
+                            <motion.div variants={{ hidden: { opacity: 0, height: 0 }, visible: { opacity: 1, height: "auto" } }} className="mt-6 border-b border-zinc-200 pb-6">
                               <p className="font-mono text-xs uppercase tracking-widest text-zinc-500">3. Level 3 Brand Rule</p>
                               <p className="mt-3 font-display text-2xl leading-tight">{evaluation.tiers.strategic_rule}</p>
                               <p className="mt-3 text-sm leading-relaxed text-zinc-600">{evaluation.tiers.tactical_learning}</p>
-                            </div>
-                            <div className="mt-6">
+                            </motion.div>
+                            <motion.div variants={{ hidden: { opacity: 0, height: 0 }, visible: { opacity: 1, height: "auto" } }} className="mt-6">
                               <p className="font-mono text-xs uppercase tracking-widest text-zinc-500">4. Suggested Strategy Modifications</p>
                               <ul className="mt-3 space-y-2 text-sm text-zinc-700">
                                 {(evaluation.suggested_modifications.length ? evaluation.suggested_modifications : [evaluation.recommended_action]).map((modification) => <li key={modification} className="border-l-2 border-zinc-300 pl-3">{modification}</li>)}
                               </ul>
-                            </div>
+                            </motion.div>
                             <button
                               onClick={() => setBreakdown(true)}
                               className="mt-5 rounded-sm border border-zinc-200 px-4 py-2.5 text-sm"
                             >
                               How this score was calculated
                             </button>
-                          </div>
+                          </motion.div>
                         ) : (
                           <p className="text-sm text-zinc-600">
                             Your evidence-led verdict is waiting.
@@ -680,9 +683,9 @@ export default function Dashboard() {
                     <p className="font-mono text-xs uppercase tracking-widest text-zinc-500">
                       02 / Outcome Logger
                     </p>
-                    <h1 className="mt-5 font-serif text-3xl tracking-tight sm:text-5xl">
+                    <motion.h1 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, delay: 0.08, ease }} className="mt-5 font-serif text-3xl tracking-tight sm:text-5xl">
                       Make the learning durable.
-                    </h1>
+                    </motion.h1>
                     <p className="mt-4 text-sm text-zinc-600">
                       Step {step} of 3. Capture evidence, then leave a useful
                       takeaway.
@@ -835,9 +838,9 @@ export default function Dashboard() {
                         <p className="font-mono text-xs uppercase tracking-widest text-zinc-500">
                           03 / Memory Timeline
                         </p>
-                        <h1 className="mt-4 font-serif text-3xl tracking-tight sm:text-5xl">
+                        <motion.h1 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, delay: 0.08, ease }} className="mt-4 font-serif text-3xl tracking-tight sm:text-5xl">
                           How the team got smarter.
-                        </h1>
+                        </motion.h1>
                       </div>
                       <input
                         value={search}
@@ -857,6 +860,7 @@ export default function Dashboard() {
                         <option value="FAILURE">Failure</option>
                       </select>
                     </div>
+                    <AnimatePresence mode="popLayout">
                     <motion.ul
                       initial="hidden"
                       animate="show"
@@ -877,7 +881,8 @@ export default function Dashboard() {
                               show: { opacity: 1, y: 0 },
                             }}
                             transition={{ duration: 0.3, ease }}
-                            className="border-b border-zinc-200 py-6"
+                            whileHover={{ x: 2 }}
+                            className="border border-transparent border-b-zinc-200 py-6 transition-colors hover:border-zinc-500"
                           >
                             <button
                               onClick={() =>
@@ -923,6 +928,7 @@ export default function Dashboard() {
                         );
                       })}
                     </motion.ul>
+                    </AnimatePresence>
                   </section>
                 )}
               </motion.div>
