@@ -4,6 +4,7 @@ create table if not exists public.workspaces (
   id uuid primary key default gen_random_uuid(),
   name text not null,
   owner_id uuid not null references auth.users(id) on delete cascade,
+  brand_profile jsonb not null default '{}'::jsonb,
   created_at timestamptz default now()
 );
 
@@ -42,6 +43,7 @@ alter table public.experiments add column if not exists workspace_id uuid refere
 alter table public.experiments add column if not exists strategic_rule text;
 alter table public.experiments add column if not exists lineage_experiment_ids uuid[] default '{}';
 alter table public.experiments add column if not exists updated_at timestamptz default now();
+alter table public.workspaces add column if not exists brand_profile jsonb not null default '{}'::jsonb;
 
 alter table public.workspaces enable row level security;
 alter table public.workspace_members enable row level security;
@@ -62,6 +64,11 @@ create policy "Users can view their workspaces" on public.workspaces for select 
 
 drop policy if exists "Users can create workspaces" on public.workspaces;
 create policy "Users can create workspaces" on public.workspaces for insert to authenticated with check (owner_id = auth.uid());
+
+drop policy if exists "Members can update brand profiles" on public.workspaces;
+create policy "Members can update brand profiles" on public.workspaces for update to authenticated
+  using (owner_id = auth.uid() or public.user_is_workspace_member(id))
+  with check (owner_id = auth.uid() or public.user_is_workspace_member(id));
 
 drop policy if exists "Users can view workspace members" on public.workspace_members;
 create policy "Users can view workspace members" on public.workspace_members for select to authenticated

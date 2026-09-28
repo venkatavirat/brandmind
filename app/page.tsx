@@ -11,9 +11,9 @@ import type {
   EvaluationResponse,
   MarketingExperiment,
 } from "@/types/experiment";
-import type { Workspace, WorkspaceMember } from "@/types/workspace";
+import type { BrandProfile, Workspace, WorkspaceMember } from "@/types/workspace";
 
-type Tab = "evaluator" | "outcome" | "timeline";
+type Tab = "brand" | "evaluator" | "outcome" | "timeline";
 type Draft = Omit<MarketingExperiment, "id" | "created_at"> & {
   created_at?: string;
 };
@@ -30,7 +30,12 @@ const empty: Draft = {
   interpretation: "",
   learning: "",
 };
-const tabs = ["Evaluator", "Outcome Logger", "Memory Timeline"];
+const tabs: { id: Tab; label: string }[] = [
+  { id: "brand", label: "Brand & Strategy" },
+  { id: "evaluator", label: "Evaluator & Review" },
+  { id: "outcome", label: "Outcome & Audience Logger" },
+  { id: "timeline", label: "Memory Timeline" },
+];
 const metrics = ["CAC", "ROAS", "CTR", "Retention"];
 const ease = [0.16, 1, 0.3, 1] as const;
 const vt = { duration: 0.25, ease };
@@ -239,7 +244,7 @@ export default function Dashboard() {
     [workspaces, setWorkspaces] = useState<Workspace[]>([]),
     [activeWorkspace, setActiveWorkspace] = useState<Workspace | null>(null),
     [members, setMembers] = useState<WorkspaceMember[]>([]),
-    [tab, setTab] = useState<Tab>("evaluator"),
+    [tab, setTab] = useState<Tab>("brand"),
     [draft, setDraft] = useState<Draft>(empty),
     [experiments, setExperiments] = useState<MarketingExperiment[]>([]),
     [hypothesis, setHypothesis] = useState(""),
@@ -252,7 +257,11 @@ export default function Dashboard() {
     [selected, setSelected] = useState<string[]>([]),
     [search, setSearch] = useState(""),
     [filter, setFilter] = useState("ALL"),
-    [expanded, setExpanded] = useState<string | null>(null);
+    [expanded, setExpanded] = useState<string | null>(null),
+    [brandProfile, setBrandProfile] = useState<BrandProfile>({ positioning: "", target_audience: "", tone_of_voice: "", core_differentiators: [] }),
+    [brandQuery, setBrandQuery] = useState(""),
+    [ideation, setIdeation] = useState<{ title: string; concept: string; memory_basis: string; avoid: string; measure: string }[]>([]),
+    [brandBusy, setBrandBusy] = useState(false);
   let mounted = true;
   useEffect(() => {
     let alive = true;
@@ -349,6 +358,20 @@ export default function Dashboard() {
       alive = false;
     };
   }, [activeWorkspace]);
+  useEffect(() => {
+    if (!activeWorkspace) return;
+    let alive = true;
+    const loadProfile = async () => {
+      const { data } = await supabaseBrowser.auth.getSession();
+      if (!data.session) return;
+      const response = await fetch(`/api/brand?workspace_id=${activeWorkspace.id}`, { headers: { Authorization: `Bearer ${data.session.access_token}` } });
+      if (!response.ok) return;
+      const result = await response.json() as { brand_profile?: BrandProfile };
+      if (alive && result.brand_profile) setBrandProfile(result.brand_profile);
+    };
+    loadProfile();
+    return () => { alive = false; };
+  }, [activeWorkspace]);
   const update = <K extends keyof Draft>(k: K, v: Draft[K]) =>
     setDraft((x) => ({ ...x, [k]: v }));
   const headers = async () => {
@@ -383,6 +406,32 @@ export default function Dashboard() {
     } finally {
       setBusy(false);
     }
+  };
+  const updateBrandProfile = (key: keyof BrandProfile, value: string) => setBrandProfile((profile) => ({ ...profile, [key]: key === "core_differentiators" ? value.split(",").map((item) => item.trim()).filter(Boolean) : value }));
+  const saveBrandProfile = async (event: FormEvent) => {
+    event.preventDefault();
+    if (!activeWorkspace) return;
+    setBrandBusy(true);
+    try {
+      const response = await fetch("/api/brand", { method: "POST", headers: await headers(), body: JSON.stringify({ workspace_id: activeWorkspace.id, brand_profile: brandProfile }) });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error);
+      setActiveWorkspace((workspace) => workspace ? { ...workspace, brand_profile: result.brand_profile } : workspace);
+      setNotice({ type: "success", message: "Brand intelligence saved." });
+    } catch (error) { setNotice({ type: "error", message: error instanceof Error ? error.message : "Unable to save brand profile." }); }
+    finally { setBrandBusy(false); }
+  };
+  const refineIdea = async (event: FormEvent) => {
+    event.preventDefault();
+    if (!activeWorkspace || !brandQuery.trim()) return;
+    setBrandBusy(true);
+    try {
+      const response = await fetch("/api/ideate", { method: "POST", headers: await headers(), body: JSON.stringify({ workspace_id: activeWorkspace.id, query: brandQuery }) });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error);
+      setIdeation(Array.isArray(result.concepts) ? result.concepts : []);
+    } catch (error) { setNotice({ type: "error", message: error instanceof Error ? error.message : "Unable to refine idea." }); }
+    finally { setBrandBusy(false); }
   };
   const retain = async (e: FormEvent) => {
     e.preventDefault();
@@ -533,8 +582,7 @@ export default function Dashboard() {
                 </div>
               </div>
               <nav className="mt-6 flex overflow-x-auto border-b border-zinc-200">
-                {tabs.map((label, i) => {
-                  const id = ["evaluator", "outcome", "timeline"][i] as Tab;
+                {tabs.map(({ id, label }, i) => {
                   return (
                     <button
                       key={id}
@@ -573,11 +621,44 @@ export default function Dashboard() {
                   <p className="text-sm text-zinc-600">
                     Preparing your workspace.
                   </p>
+                ) : tab === "brand" ? (
+                  <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
+                    <section className="rounded border border-zinc-200 bg-zinc-50/50 p-5 sm:p-7 lg:col-span-5">
+                      <p className="font-mono text-xs uppercase tracking-widest text-zinc-500">01 / Brand &amp; Strategy</p>
+                      <motion.h1 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, delay: 0.08, ease }} className="mt-5 font-display text-4xl tracking-tight sm:text-5xl">Make the brand legible.</motion.h1>
+                      <p className="mt-4 text-sm leading-relaxed text-zinc-600">Persistent identity and tone context for every campaign decision.</p>
+                      <form onSubmit={saveBrandProfile} className="mt-8 space-y-5">
+                        <Field label="Positioning" value={brandProfile.positioning} onChange={(value) => updateBrandProfile("positioning", value)} placeholder="Affordable, beginner-friendly fitness coaching" />
+                        <Field label="Target audience" value={brandProfile.target_audience} onChange={(value) => updateBrandProfile("target_audience", value)} placeholder="Young professionals beginning fitness" />
+                        <Field label="Tone of voice" value={brandProfile.tone_of_voice} onChange={(value) => updateBrandProfile("tone_of_voice", value)} placeholder="Encouraging, practical, non-intimidating" />
+                        <Field label="Core differentiators" value={brandProfile.core_differentiators.join(", ")} onChange={(value) => updateBrandProfile("core_differentiators", value)} placeholder="Flexible coaching, visible progress" multiline />
+                        <button className="rounded-sm bg-zinc-950 px-5 py-3 text-sm font-medium text-white">{brandBusy ? "Saving..." : "Save brand intelligence"}</button>
+                      </form>
+                    </section>
+                    <section className="lg:col-span-7 lg:border-l lg:border-zinc-200 lg:pl-8">
+                      <p className="font-mono text-xs uppercase tracking-widest text-zinc-500">Memory-informed ideation</p>
+                      <h2 className="mt-4 font-display text-3xl tracking-tight">Refine the rough idea.</h2>
+                      <p className="mt-3 text-sm leading-relaxed text-zinc-600">Every concept is checked against this workspace&apos;s Hindsight memory, including what failed and what to avoid repeating.</p>
+                      <form onSubmit={refineIdea} className="mt-7 flex flex-col gap-3 sm:flex-row">
+                        <input value={brandQuery} onChange={(event) => setBrandQuery(event.target.value)} placeholder="A practical campaign direction for new members..." className={`${input} flex-1`} />
+                        <button className="rounded-sm bg-zinc-950 px-5 py-3 text-sm font-medium text-white">{brandBusy ? "Checking memory..." : "Refine with memory"}</button>
+                      </form>
+                      <AnimatePresence mode="popLayout">
+                        <div className="mt-8 space-y-4">
+                          {ideation.map((concept) => <motion.article layout initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} key={concept.title} className="border border-zinc-200 p-5 transition-colors hover:border-zinc-500">
+                            <h3 className="font-display text-2xl">{concept.title}</h3>
+                            <p className="mt-2 text-sm leading-relaxed text-zinc-700">{concept.concept}</p>
+                            <div className="mt-4 grid gap-3 text-xs text-zinc-600 sm:grid-cols-3"><p><span className="font-mono uppercase tracking-wider text-zinc-500">Memory basis</span><br />{concept.memory_basis}</p><p><span className="font-mono uppercase tracking-wider text-zinc-500">Avoid</span><br />{concept.avoid}</p><p><span className="font-mono uppercase tracking-wider text-zinc-500">Measure</span><br />{concept.measure}</p></div>
+                          </motion.article>)}
+                        </div>
+                      </AnimatePresence>
+                    </section>
+                  </div>
                 ) : tab === "evaluator" ? (
                   <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
                     <section className="rounded border border-zinc-200 bg-zinc-50/50 p-5 sm:p-7 lg:col-span-8">
                       <p className="font-mono text-xs uppercase tracking-widest text-zinc-500">
-                        01 / Evaluator
+                        02 / Evaluator &amp; Review
                       </p>
                       <motion.h1 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, delay: 0.08, ease }} className="mt-5 font-serif text-3xl font-normal tracking-tight sm:text-5xl">
                         Intercept the next bad bet.
@@ -681,7 +762,7 @@ export default function Dashboard() {
                 ) : tab === "outcome" ? (
                   <section className="max-w-5xl rounded border border-zinc-200 bg-zinc-50/50 p-5 sm:p-7">
                     <p className="font-mono text-xs uppercase tracking-widest text-zinc-500">
-                      02 / Outcome Logger
+                      03 / Outcome &amp; Audience Logger
                     </p>
                     <motion.h1 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, delay: 0.08, ease }} className="mt-5 font-serif text-3xl tracking-tight sm:text-5xl">
                       Make the learning durable.
@@ -793,7 +874,7 @@ export default function Dashboard() {
                                           .value as Draft["outcome_status"],
                                       )
                                     }
-                                    className={`${input} mt-2`}
+                                    className={`${input} mt-2 bg-white text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100 dark:border-zinc-800 [&>option]:bg-zinc-900 [&>option]:text-zinc-100`}
                                   >
                                     <option>SUCCESS</option>
                                     <option>FAILURE</option>
@@ -836,7 +917,7 @@ export default function Dashboard() {
                     <div className="flex flex-col justify-between gap-5 border-b border-zinc-200 pb-6 md:flex-row md:items-end">
                       <div>
                         <p className="font-mono text-xs uppercase tracking-widest text-zinc-500">
-                          03 / Memory Timeline
+                          04 / Memory Timeline
                         </p>
                         <motion.h1 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, delay: 0.08, ease }} className="mt-4 font-serif text-3xl tracking-tight sm:text-5xl">
                           How the team got smarter.
@@ -853,7 +934,7 @@ export default function Dashboard() {
                       <select
                         value={filter}
                         onChange={(e) => setFilter(e.target.value)}
-                        className="rounded-sm border border-zinc-200 px-3 py-2 font-mono text-xs"
+                        className="rounded-sm border border-zinc-200 bg-white px-3 py-2 font-mono text-xs text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100 [&>option]:bg-zinc-900 [&>option]:text-zinc-100"
                       >
                         <option value="ALL">All outcomes</option>
                         <option value="SUCCESS">Success</option>
