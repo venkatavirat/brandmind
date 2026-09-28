@@ -111,7 +111,7 @@ export default function WorkspaceSelector({
             transition={{ duration: 0.2, ease }}
           >
             <motion.div
-              className="w-full max-w-md rounded border border-zinc-200 bg-white p-5 text-zinc-900 shadow-none dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100 sm:p-7"
+              className="w-full max-w-md gap-4 rounded-xl border border-slate-200 bg-white/90 p-6 text-slate-900 backdrop-blur-md dark:border-slate-800 dark:bg-slate-900/90 dark:text-slate-100 sm:p-7"
               role="dialog"
               aria-modal="true"
               initial={{ opacity: 0, scale: 0.98, y: 4 }}
@@ -183,7 +183,7 @@ export default function WorkspaceSelector({
                   />
                   <button
                     type="submit"
-                    className="mt-4 h-11 w-full rounded bg-[#09090B] text-sm font-medium text-white hover:bg-[#27272A] focus:outline-none focus:ring-2 focus:ring-[#09090B] focus:ring-offset-2"
+                    className="mt-4 h-11 w-full rounded-lg bg-slate-900 text-sm font-medium text-white hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:ring-offset-2 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200"
                   >
                     {dialog === "create"
                       ? "Create workspace"

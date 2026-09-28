@@ -11,12 +11,11 @@ function getSystemTheme(): Theme {
 }
 
 export default function ThemeToggle() {
-  const [theme, setTheme] = useState<Theme | null>(null);
-
-  useEffect(() => {
+  const [theme, setTheme] = useState<Theme | null>(() => {
+    if (typeof window === "undefined") return null;
     const stored = window.localStorage.getItem("brandmind-theme") as Theme | null;
-    setTheme(stored === "light" || stored === "dark" ? stored : getSystemTheme());
-  }, []);
+    return stored === "light" || stored === "dark" ? stored : getSystemTheme();
+  });
 
   useEffect(() => {
     if (!theme) return;

@@ -1,5 +1,19 @@
 create extension if not exists pgcrypto;
 
+create table if not exists public.user_profiles (
+  id uuid primary key references auth.users(id) on delete cascade,
+  email varchar(255) unique not null,
+  username varchar(50) unique not null,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+alter table public.user_profiles enable row level security;
+drop policy if exists "Users can view profiles" on public.user_profiles;
+create policy "Users can view profiles" on public.user_profiles for select to authenticated using (true);
+drop policy if exists "Users can manage their profile" on public.user_profiles;
+create policy "Users can manage their profile" on public.user_profiles for all to authenticated using (id = auth.uid()) with check (id = auth.uid());
+
 create table if not exists public.workspaces (
   id uuid primary key default gen_random_uuid(),
   name text not null,

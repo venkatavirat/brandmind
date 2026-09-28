@@ -1,0 +1,6 @@
+import { WorkspaceTemplate } from "@/components/workspace/workspace-template";
+
+export default function BrandAssetsPage() {
+  return <WorkspaceTemplate eyebrow="01 / Brand" title="Asset Library" subtitle="A governed home for the digital assets that make the brand recognizable and usable.
+" actions={["Upload asset", "Review usage"]} stats={[{ label: "Total assets", value: "128", detail: "across 6 collections" }, { label: "Approved", value: "94%", detail: "ready for production" }, { label: "Needs review", value: "7", detail: "before next launch" }]} sections={[{ title: "Logos", description: "Primary, monochrome, and campaign lockups.", badge: "42 assets", items: ["Primary mark and clear-space rules", "Dark and light exports", "Partner lockup templates"] }, { title: "Fonts", description: "The type system behind every touchpoint.", badge: "Approved", items: ["Instrument Serif display family", "Plus Jakarta Sans body family", "JetBrains Mono data labels"] }, { title: "Palettes", description: "Semantic color roles for product and campaign work.", score: 96, items: ["Brand neutrals are tokenized", "Intelligence indigo is reserved for insight", "Contrast checks pass for core surfaces"] }]} />;
+}

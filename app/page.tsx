@@ -2,6 +2,7 @@
 /* eslint-disable react-hooks/set-state-in-effect, react-hooks/immutability, react-hooks/exhaustive-deps, @typescript-eslint/no-unused-vars */
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import Link from "next/link";
 import type { User } from "@supabase/supabase-js";
 import AuthModal from "@/app/components/AuthModal";
 import ThemeToggle from "@/app/components/ThemeToggle";
@@ -37,6 +38,13 @@ const tabs: { id: Tab; label: string }[] = [
   { id: "lab", label: "Campaign & Experiment Lab" },
   { id: "analytics", label: "Funnel & Analytics" },
   { id: "timeline", label: "Memory Timeline" },
+];
+const journeyGroups = [
+  { label: "COMMAND CENTER", items: [{ id: "command" as Tab, label: "Command Center", href: "/command-center" }] },
+  { label: "01. DISCOVER", items: [{ id: "hq" as Tab, label: "Research Center", href: "/discover/research" }, { id: "hq" as Tab, label: "Audience Intelligence", href: "/discover/audience" }, { id: "hq" as Tab, label: "Competitive Intelligence", href: "/discover/competitive" }] },
+  { label: "02. DEFINE & PLAN", items: [{ id: "hq" as Tab, label: "Brand HQ", href: "/define/brand" }, { id: "hq" as Tab, label: "Positioning & Messaging", href: "/define/positioning" }, { id: "analytics" as Tab, label: "Strategy & KPIs", href: "/define/kpis" }] },
+  { label: "03. CREATE & EXECUTE", items: [{ id: "ideas" as Tab, label: "Creative & Content Briefs", href: "/execute/briefs" }, { id: "ideas" as Tab, label: "Website & SEO Strategy", href: "/execute/seo" }, { id: "ideas" as Tab, label: "Campaign Projects", href: "/execute/campaigns" }, { id: "ideas" as Tab, label: "Channel Calendar", href: "/execute/calendar" }] },
+  { label: "04. MEASURE & LEARN", items: [{ id: "analytics" as Tab, label: "Campaign Analytics", href: "/measure/analytics" }, { id: "lab" as Tab, label: "Decision Review", href: "/measure/review" }, { id: "timeline" as Tab, label: "Hindsight Memory Layer", href: "/measure/memory" }] },
 ];
 const metrics = ["CAC", "ROAS", "CTR", "Retention"];
 const ease = [0.16, 1, 0.3, 1] as const;
@@ -104,12 +112,12 @@ function Footer() {
       <div className="mx-auto flex max-w-7xl justify-between gap-4">
         <span>BrandMind Engine v3.0 · © 2026</span>
         <span className="flex gap-5">
-          <a href="/terms" className="hover:text-zinc-950 hover:underline">
+          <Link href="/terms" className="hover:text-zinc-950 hover:underline">
             Terms of Service
-          </a>
-          <a href="/privacy" className="hover:text-zinc-950 hover:underline">
+          </Link>
+          <Link href="/privacy" className="hover:text-zinc-950 hover:underline">
             Privacy Policy
-          </a>
+          </Link>
         </span>
       </div>
     </footer>
@@ -138,7 +146,7 @@ function Landing({ openAuth }: { openAuth: () => void }) {
           </div>
           <button
             onClick={openAuth}
-            className="rounded-sm bg-zinc-950 px-5 py-3 text-sm font-medium text-white hover:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-zinc-950 focus:ring-offset-2"
+            className="rounded-lg bg-slate-900 px-5 py-3 text-sm font-medium text-white hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:ring-offset-2 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200"
           >
             Sign In / Register
           </button>
@@ -162,7 +170,7 @@ function Landing({ openAuth }: { openAuth: () => void }) {
             </p>
             <button
               onClick={openAuth}
-              className="mt-7 rounded-sm bg-zinc-950 px-6 py-3 font-medium text-white hover:bg-zinc-800"
+              className="mt-7 rounded-lg bg-slate-900 px-6 py-3 font-medium text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200"
             >
               Launch Team Workspace -&gt;
             </button>
@@ -248,6 +256,7 @@ export default function Dashboard() {
     [activeWorkspace, setActiveWorkspace] = useState<Workspace | null>(null),
     [members, setMembers] = useState<WorkspaceMember[]>([]),
     [tab, setTab] = useState<Tab>("command"),
+    [sidebarOpen, setSidebarOpen] = useState(true),
     [labView, setLabView] = useState<"evaluate" | "outcome">("evaluate"),
     [draft, setDraft] = useState<Draft>(empty),
     [experiments, setExperiments] = useState<MarketingExperiment[]>([]),
@@ -546,6 +555,7 @@ export default function Dashboard() {
             onClose={() => setAuthOpen(false)}
             onAuthenticated={(u, m) => {
               setUser(u);
+              window.history.pushState({}, "", "/command-center");
               setNotice({ type: "success", message: m });
             }}
           />
@@ -564,6 +574,7 @@ export default function Dashboard() {
             <div className="mx-auto max-w-[1480px] px-5 py-5 sm:px-8">
               <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
                 <div className="flex items-center gap-3">
+                  <button type="button" aria-label={sidebarOpen ? "Collapse navigation" : "Expand navigation"} onClick={() => setSidebarOpen((open) => !open)} className="rounded-md border border-zinc-200 px-2.5 py-2 text-zinc-500 hover:bg-zinc-100 dark:border-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-800">{sidebarOpen ? "←" : "→"}</button>
                   <Logo />
                   <div>
                     <p className="font-medium tracking-tight text-zinc-900 dark:text-zinc-100">BrandMind</p>
@@ -585,7 +596,7 @@ export default function Dashboard() {
                     {experiments.length} records
                   </span>
                   <span className="max-w-[180px] truncate text-sm text-zinc-600">
-                    {user.email}
+                    @{user.user_metadata?.username || user.email?.split("@")[0] || "member"}
                   </span>
                   <button
                     onClick={() => supabaseBrowser.auth.signOut()}
@@ -596,34 +607,14 @@ export default function Dashboard() {
                   <ThemeToggle />
                 </div>
               </div>
-              <nav className="mt-6 flex overflow-x-auto border-b border-zinc-200">
-                {tabs.map(({ id, label }, i) => {
-                  return (
-                    <button
-                      key={id}
-                      onClick={() => setTab(id)}
-                      className={`relative shrink-0 rounded-md px-4 py-3 font-mono text-sm transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800/60 focus:outline-none focus:ring-2 focus:ring-zinc-950 ${tab === id ? "font-semibold text-zinc-900 dark:text-zinc-100" : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"}`}
-                    >
-                      <span className="font-mono text-xs">0{i + 1}. </span>
-                      {label}
-                      {tab === id && (
-                        <motion.span
-                          layoutId="activeTabUnderline"
-                          className="absolute inset-x-0 -bottom-px h-0.5 bg-zinc-950"
-                          transition={{
-                            type: "spring",
-                            stiffness: 420,
-                            damping: 34,
-                          }}
-                        />
-                      )}
-                    </button>
-                  );
-                })}
-              </nav>
             </div>
           </header>
-          <div className="mx-auto max-w-[1480px] px-5 py-8 sm:px-8">
+          <aside className={`fixed bottom-0 left-0 top-0 z-30 hidden border-r border-zinc-200 bg-white pt-28 transition-[width] duration-200 dark:border-zinc-800 dark:bg-zinc-950 lg:block ${sidebarOpen ? "w-64" : "w-20"}`}>
+            <nav className="h-full overflow-y-auto px-3 pb-8">
+              {journeyGroups.map((group) => <div key={group.label} className="mb-6"><p className={`px-3 font-mono text-[10px] uppercase tracking-widest text-zinc-500 dark:text-zinc-400 ${sidebarOpen ? "" : "sr-only"}`}>{group.label}</p><div className="mt-2 space-y-1">{group.items.map((item) => <button key={item.href} type="button" title={sidebarOpen ? undefined : item.label} onClick={() => { window.history.pushState({}, "", item.href); setTab(item.id); }} className={`w-full rounded-t-md border-b-2 px-3 py-2.5 text-left text-sm transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800/50 ${tab === item.id ? "border-zinc-900 font-semibold text-zinc-900 dark:border-sky-400 dark:text-zinc-100" : "border-transparent text-slate-500 dark:text-slate-400"}`}>{sidebarOpen ? item.label : item.label.slice(0, 1)}</button>)}</div></div>)}
+            </nav>
+          </aside>
+          <div className={`mx-auto max-w-[1480px] px-5 py-8 transition-[padding] duration-200 sm:px-8 ${sidebarOpen ? "lg:pl-72" : "lg:pl-28"}`}>
             <AnimatePresence mode="wait">
               <motion.div
                 key={tab}
@@ -1068,6 +1059,7 @@ export default function Dashboard() {
             onClose={() => setAuthOpen(false)}
             onAuthenticated={(u, m) => {
               setUser(u);
+              window.history.pushState({}, "", "/command-center");
               setNotice({ type: "success", message: m });
             }}
           />

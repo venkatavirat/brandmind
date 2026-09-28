@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Instrument_Serif, JetBrains_Mono, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import SmoothScroll from "./components/SmoothScroll";
+import { AppShell } from "@/components/layout/app-shell";
 
 const instrumentSerif = Instrument_Serif({
   variable: "--font-instrument-serif",
@@ -31,7 +32,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       suppressHydrationWarning
       className={`${instrumentSerif.variable} ${jakartaSans.variable} ${jetBrainsMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col"><SmoothScroll>{children}</SmoothScroll></body>
+      <body className="min-h-full flex flex-col"><SmoothScroll><AppShell>{children}</AppShell></SmoothScroll></body>
     </html>
   );
 }

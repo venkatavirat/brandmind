@@ -3,7 +3,7 @@
 const HINDSIGHT_URL = process.env.HINDSIGHT_API_URL || 'https://api.hindsight.vectorize.io';
 const HINDSIGHT_KEY = process.env.HINDSIGHT_API_KEY || '';
 
-export async function retainCampaignMemory(campaignData: Record<string, any>) {
+export async function retainCampaignMemory(campaignData: Record<string, unknown>) {
   const response = await fetch(`${HINDSIGHT_URL}/v1/default/banks/brandmind/memories`, {
     method: 'POST',
     headers: {

@@ -3,20 +3,56 @@
 :root {
   --background: #ffffff;
   --foreground: #09090b;
-  --hairline: #e4e4e7;
-  --muted: #71717a;
+  --card: #ffffff;
+  --primary: #0f172a;
+  --border: #e2e8f0;
+  --radius: 0.375rem;
+  --ring: #4f46e5;
+  --muted: #64748b;
+  --intelligence: #4f46e5;
+  --intelligence-muted: #eef2ff;
+  --intelligence-border: #c7d2fe;
+  --success: #15803d;
+  --warning: #a16207;
+  --destructive: #b91c1c;
+  --hairline: var(--border);
 }
 
 :root.dark {
   --background: #09090b;
   --foreground: #fafafa;
-  --hairline: #27272a;
+  --card: #18181b;
+  --primary: #f8fafc;
+  --border: #27272a;
+  --ring: #818cf8;
   --muted: #a1a1aa;
+  --intelligence: #818cf8;
+  --intelligence-muted: #1e1b4b;
+  --intelligence-border: #4338ca;
+  --success: #4ade80;
+  --warning: #facc15;
+  --destructive: #f87171;
+  --hairline: var(--border);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-primary: var(--primary);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted);
+  --color-intelligence: var(--intelligence);
+  --color-intelligence-muted: var(--intelligence-muted);
+  --color-intelligence-border: var(--intelligence-border);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-destructive: var(--destructive);
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
   --font-sans: var(--font-jakarta-sans);
   --font-mono: var(--font-jetbrains-mono);
 }
@@ -29,6 +65,22 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-jakarta-sans), sans-serif;
+}
+
+button,
+input,
+textarea,
+select {
+  color: var(--foreground);
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--ring);
 }
 
 .font-display,

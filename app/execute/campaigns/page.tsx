@@ -1,0 +1,7 @@
+import { WorkspaceTemplate } from "@/components/workspace/workspace-template";
+import { LaunchChecklist } from "@/components/execute/launch-checklist";
+import { StageNavigator } from "@/components/workspace/stage-navigator";
+
+export default function CampaignsPage() {
+  return <><WorkspaceTemplate eyebrow="03 / Execute" title="Launch & Campaigns" subtitle="Move approved work into stage-based campaign projects with owners, evidence, and decision gates attached." actions={["New campaign", "View launch board"]} stats={[{ label: "Active campaigns", value: "4", detail: "across 3 stages" }, { label: "Launch readiness", value: "76%", detail: "average project score" }, { label: "Blocked items", value: "3", detail: "need owner attention" }]} sections={[{ title: "Product Launch", description: "A staged rollout with proof-led acquisition creative.", badge: "In production", items: ["Creative brief approved", "Audience segment selected", "Measurement plan attached"] }, { title: "Promotions", description: "Discount activity governed by fatigue guardrails.", score: 76, items: ["Rotate assets before retargeting", "Protect value story", "Review prior failure memory before launch"] }, { title: "Launch checklist", description: "The final checks before work reaches market.", badge: "9 of 12", items: ["Owner and channel confirmed", "Success and stop conditions recorded", "Audience reaction capture ready"] }]} /><div className="mx-auto max-w-7xl space-y-6 px-5 pb-10 sm:px-8"><StageNavigator activeStage={3} completedStages={[0, 1, 2]} /><LaunchChecklist /></div></>;
+}
