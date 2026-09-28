@@ -36,7 +36,7 @@ export default function WorkspaceSelector({
     setDialog(null);
   };
   const field =
-    "h-11 w-full rounded border border-[#E4E4E7] bg-white px-3.5 py-2.5 text-sm text-[#09090B] outline-none placeholder:text-[#A1A1AA] focus:border-[#09090B] focus:outline-none focus:ring-2 focus:ring-[#09090B] focus:ring-offset-2";
+    "h-11 w-full rounded border border-zinc-200 bg-white px-3.5 py-2.5 text-sm text-zinc-900 outline-none placeholder:text-zinc-400 focus:border-zinc-950 focus:outline-none focus:ring-2 focus:ring-zinc-950 focus:ring-offset-2 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-400 [&>option]:bg-white dark:[&>option]:bg-zinc-900 [&>option]:text-zinc-900 dark:[&>option]:text-zinc-100";
   return (
     <div className="relative flex items-center gap-2">
       <div className="relative">
@@ -111,7 +111,7 @@ export default function WorkspaceSelector({
             transition={{ duration: 0.2, ease }}
           >
             <motion.div
-              className="w-full max-w-md rounded border border-[#E4E4E7] bg-white p-5 shadow-none sm:p-7"
+              className="w-full max-w-md rounded border border-zinc-200 bg-white p-5 text-zinc-900 shadow-none dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100 sm:p-7"
               role="dialog"
               aria-modal="true"
               initial={{ opacity: 0, scale: 0.98, y: 4 }}
@@ -121,12 +121,12 @@ export default function WorkspaceSelector({
             >
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="font-mono text-xs uppercase tracking-wider text-[#71717A]">
+                  <p className="font-mono text-xs uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
                     {dialog === "members"
                       ? "Workspace people"
                       : "Workspace settings"}
                   </p>
-                  <h2 className="mt-2 text-xl font-medium tracking-tight text-[#09090B]">
+                  <h2 className="mt-2 text-xl font-medium tracking-tight text-zinc-900 dark:text-zinc-100">
                     {dialog === "members"
                       ? "Team members"
                       : dialog === "create"
@@ -137,7 +137,7 @@ export default function WorkspaceSelector({
                 <button
                   type="button"
                   onClick={() => setDialog(null)}
-                  className="rounded px-2 py-1 text-sm text-[#71717A] hover:bg-[#F4F4F5] focus:outline-none focus:ring-2 focus:ring-[#09090B] focus:ring-offset-2"
+                  className="rounded px-2 py-1 text-sm text-zinc-500 hover:bg-zinc-100 focus:outline-none focus:ring-2 focus:ring-zinc-950 focus:ring-offset-2 dark:text-zinc-400 dark:hover:bg-zinc-800"
                 >
                   Close
                 </button>
@@ -149,23 +149,23 @@ export default function WorkspaceSelector({
                       <motion.div
                         layout
                         key={member.user_id}
-                        className="flex items-center justify-between rounded border border-[#E4E4E7] px-3 py-3 text-sm text-[#52525B]"
+                        className="flex items-center justify-between rounded border border-zinc-200 px-3 py-3 text-sm text-zinc-700 dark:border-zinc-800 dark:text-zinc-300"
                       >
                         <span>{member.email || member.user_id}</span>
-                        <span className="font-mono text-xs uppercase tracking-wider text-[#71717A]">
+                        <span className="font-mono text-xs uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
                           {member.role}
                         </span>
                       </motion.div>
                     ))
                   ) : (
-                    <p className="text-sm text-[#71717A]">
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
                       No team members found yet.
                     </p>
                   )}
                 </div>
               ) : (
                 <form onSubmit={submit} className="mt-5">
-                  <label className="mb-2 block text-sm font-medium text-[#09090B]">
+                  <label className="mb-2 block text-sm font-medium text-zinc-900 dark:text-zinc-100">
                     {dialog === "create" ? "Workspace name" : "Member email"}
                   </label>
                   <input

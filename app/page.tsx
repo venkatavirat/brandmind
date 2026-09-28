@@ -41,7 +41,7 @@ const ease = [0.16, 1, 0.3, 1] as const;
 const vt = { duration: 0.25, ease };
 function Logo() {
   return (
-    <div className="flex h-9 w-9 items-center justify-center rounded-sm bg-[#09090B] text-white">
+    <div className="flex h-9 w-9 items-center justify-center rounded-sm bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900">
       <svg
         viewBox="0 0 16 16"
         className="h-4 w-4"
@@ -128,8 +128,8 @@ function Landing({ openAuth }: { openAuth: () => void }) {
           <div className="flex items-center gap-3">
             <Logo />
             <div>
-              <p className="font-medium tracking-tight">BrandMind</p>
-              <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-500">
+              <p className="font-medium tracking-tight text-zinc-900 dark:text-zinc-100">BrandMind</p>
+              <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
                 Marketing experiment intelligence
               </p>
             </div>
@@ -186,7 +186,7 @@ function Landing({ openAuth }: { openAuth: () => void }) {
     </motion.main>
   );
 }
-function Notice({ notice }: { notice: Notice }) {
+function Notice({ notice, onClose }: { notice: Notice; onClose: () => void }) {
   return (
     <AnimatePresence>
       {notice && (
@@ -194,9 +194,10 @@ function Notice({ notice }: { notice: Notice }) {
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 8 }}
-          className="fixed bottom-4 left-4 right-4 z-40 mx-auto max-w-md rounded border border-zinc-200 bg-white px-4 py-3 text-sm"
+          className="fixed bottom-4 left-4 right-4 z-40 mx-auto flex max-w-md items-center justify-between gap-4 rounded border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
         >
-          {notice.message}
+          <span>{notice.message}</span>
+          <button type="button" aria-label="Dismiss notification" onClick={onClose} className="shrink-0 px-1 text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100">✕</button>
         </motion.div>
       )}
     </AnimatePresence>
@@ -262,6 +263,11 @@ export default function Dashboard() {
     [brandQuery, setBrandQuery] = useState(""),
     [ideation, setIdeation] = useState<{ title: string; concept: string; memory_basis: string; avoid: string; measure: string }[]>([]),
     [brandBusy, setBrandBusy] = useState(false);
+  useEffect(() => {
+    if (!notice) return;
+    const timeout = window.setTimeout(() => setNotice(null), 3000);
+    return () => window.clearTimeout(timeout);
+  }, [notice]);
   let mounted = true;
   useEffect(() => {
     let alive = true;
@@ -534,7 +540,7 @@ export default function Dashboard() {
               setNotice({ type: "success", message: m });
             }}
           />
-          <Notice notice={notice} />
+          <Notice notice={notice} onClose={() => setNotice(null)} />
         </>
       ) : (
         <motion.main
@@ -551,8 +557,8 @@ export default function Dashboard() {
                 <div className="flex items-center gap-3">
                   <Logo />
                   <div>
-                    <p className="font-medium tracking-tight">BrandMind</p>
-                    <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-500">
+                    <p className="font-medium tracking-tight text-zinc-900 dark:text-zinc-100">BrandMind</p>
+                    <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
                       Team experiment operating system
                     </p>
                   </div>
@@ -587,7 +593,7 @@ export default function Dashboard() {
                     <button
                       key={id}
                       onClick={() => setTab(id)}
-                      className={`relative min-h-12 shrink-0 px-4 text-sm ${tab === id ? "text-zinc-950" : "text-zinc-500"} focus:outline-none focus:ring-2 focus:ring-zinc-950`}
+                      className={`relative shrink-0 rounded-md px-4 py-3 font-mono text-sm transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800/60 focus:outline-none focus:ring-2 focus:ring-zinc-950 ${tab === id ? "font-semibold text-zinc-900 dark:text-zinc-100" : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"}`}
                     >
                       <span className="font-mono text-xs">0{i + 1}. </span>
                       {label}
@@ -949,7 +955,7 @@ export default function Dashboard() {
                         hidden: {},
                         show: { transition: { staggerChildren: 0.05 } },
                       }}
-                      className="mt-8"
+                      className="mt-8 pb-32"
                     >
                       {filtered.map((x, i) => {
                         const id = x.id || String(i);
@@ -963,7 +969,7 @@ export default function Dashboard() {
                             }}
                             transition={{ duration: 0.3, ease }}
                             whileHover={{ x: 2 }}
-                            className="border border-transparent border-b-zinc-200 py-6 transition-colors hover:border-zinc-500"
+                            className="mb-4 rounded-lg border border-zinc-200 bg-white p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-900/50 dark:hover:border-zinc-600"
                           >
                             <button
                               onClick={() =>
@@ -982,6 +988,12 @@ export default function Dashboard() {
                                 </span>
                                 <span className="mt-2 block text-sm text-zinc-600">
                                   {x.learning}
+                                </span>
+                                <span className="mt-4 flex flex-wrap gap-2 text-left">
+                                  <span className="rounded-sm border border-zinc-200 px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">Strategy: {x.strategy_used}</span>
+                                  <span className="rounded-sm border border-zinc-200 px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">Tier 1: {x.result_metrics}</span>
+                                  <span className="rounded-sm border border-zinc-200 px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">Tier 2: {x.learning}</span>
+                                  {x.strategic_rule && <span className="rounded-sm border border-zinc-200 px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">Tier 3: {x.strategic_rule}</span>}
                                 </span>
                               </span>
                               <span className="font-mono text-xs uppercase tracking-widest text-zinc-500 md:col-span-3 md:text-right">
@@ -1027,7 +1039,7 @@ export default function Dashboard() {
               setNotice({ type: "success", message: m });
             }}
           />
-          <Notice notice={notice} />
+          <Notice notice={notice} onClose={() => setNotice(null)} />
         </motion.main>
       )}
     </AnimatePresence>
