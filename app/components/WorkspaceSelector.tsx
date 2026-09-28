@@ -49,7 +49,7 @@ export default function WorkspaceSelector({
           <span className="truncate">
             {activeWorkspace?.name || "Select workspace"}
           </span>
-          <span className="font-mono text-xs text-[#71717A]">v</span>
+          <span aria-hidden="true" className="h-1.5 w-1.5 -translate-y-0.5 rotate-45 border-b border-r border-zinc-500 dark:border-zinc-400" />
         </button>
         <AnimatePresence>
           {menuOpen && (

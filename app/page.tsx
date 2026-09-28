@@ -13,7 +13,7 @@ import type {
 } from "@/types/experiment";
 import type { BrandProfile, Workspace, WorkspaceMember } from "@/types/workspace";
 
-type Tab = "brand" | "evaluator" | "outcome" | "timeline";
+type Tab = "command" | "hq" | "ideas" | "lab" | "analytics" | "timeline";
 type Draft = Omit<MarketingExperiment, "id" | "created_at"> & {
   created_at?: string;
 };
@@ -31,9 +31,11 @@ const empty: Draft = {
   learning: "",
 };
 const tabs: { id: Tab; label: string }[] = [
-  { id: "brand", label: "Brand & Strategy" },
-  { id: "evaluator", label: "Evaluator & Review" },
-  { id: "outcome", label: "Outcome & Audience Logger" },
+  { id: "command", label: "Command Center" },
+  { id: "hq", label: "Brand HQ & Audience" },
+  { id: "ideas", label: "Idea & Content Studio" },
+  { id: "lab", label: "Campaign & Experiment Lab" },
+  { id: "analytics", label: "Funnel & Analytics" },
   { id: "timeline", label: "Memory Timeline" },
 ];
 const metrics = ["CAC", "ROAS", "CTR", "Retention"];
@@ -245,7 +247,8 @@ export default function Dashboard() {
     [workspaces, setWorkspaces] = useState<Workspace[]>([]),
     [activeWorkspace, setActiveWorkspace] = useState<Workspace | null>(null),
     [members, setMembers] = useState<WorkspaceMember[]>([]),
-    [tab, setTab] = useState<Tab>("brand"),
+    [tab, setTab] = useState<Tab>("command"),
+    [labView, setLabView] = useState<"evaluate" | "outcome">("evaluate"),
     [draft, setDraft] = useState<Draft>(empty),
     [experiments, setExperiments] = useState<MarketingExperiment[]>([]),
     [hypothesis, setHypothesis] = useState(""),
@@ -262,7 +265,8 @@ export default function Dashboard() {
     [brandProfile, setBrandProfile] = useState<BrandProfile>({ positioning: "", target_audience: "", tone_of_voice: "", core_differentiators: [] }),
     [brandQuery, setBrandQuery] = useState(""),
     [ideation, setIdeation] = useState<{ title: string; concept: string; memory_basis: string; avoid: string; measure: string }[]>([]),
-    [brandBusy, setBrandBusy] = useState(false);
+    [brandBusy, setBrandBusy] = useState(false),
+    [recommendations, setRecommendations] = useState<string[]>([]);
   useEffect(() => {
     if (!notice) return;
     const timeout = window.setTimeout(() => setNotice(null), 3000);
@@ -374,6 +378,11 @@ export default function Dashboard() {
       if (!response.ok) return;
       const result = await response.json() as { brand_profile?: BrandProfile };
       if (alive && result.brand_profile) setBrandProfile(result.brand_profile);
+      const recommendationResponse = await fetch(`/api/recommend?workspace_id=${activeWorkspace.id}`, { headers: { Authorization: `Bearer ${data.session.access_token}` } });
+      if (recommendationResponse.ok) {
+        const recommendationResult = await recommendationResponse.json() as { recommendations?: unknown[] };
+        if (alive) setRecommendations((recommendationResult.recommendations || []).map((item) => typeof item === "string" ? item : JSON.stringify(item)));
+      }
     };
     loadProfile();
     return () => { alive = false; };
@@ -627,10 +636,23 @@ export default function Dashboard() {
                   <p className="text-sm text-zinc-600">
                     Preparing your workspace.
                   </p>
-                ) : tab === "brand" ? (
+                ) : tab === "command" ? (
+                  <section className="pb-32">
+                    <p className="font-mono text-xs uppercase tracking-widest text-zinc-500">01 / Command Center</p>
+                    <motion.h1 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, delay: 0.08, ease }} className="mt-5 font-display text-4xl tracking-tight sm:text-6xl">The operating picture.</motion.h1>
+                    <p className="mt-4 max-w-2xl text-sm leading-relaxed text-zinc-600">A concise view of brand health, active memory, experiment risk, and the next actions worth reviewing.</p>
+                    <div className="mt-10 grid gap-4 md:grid-cols-4">
+                      <div className="border border-zinc-200 p-5 dark:border-zinc-800"><p className="font-mono text-xs uppercase tracking-widest text-zinc-500">Brand health</p><p className="mt-3 font-display text-5xl">{Math.min(100, experiments.length * 12 + (brandProfile.positioning ? 25 : 0) + (brandProfile.target_audience ? 20 : 0))}</p><p className="mt-2 text-sm text-zinc-600">memory test coverage</p></div>
+                      <div className="border border-zinc-200 p-5 dark:border-zinc-800"><p className="font-mono text-xs uppercase tracking-widest text-zinc-500">Active campaigns</p><p className="mt-3 font-display text-5xl">{experiments.filter((item) => item.outcome_status === "INCONCLUSIVE").length}</p><p className="mt-2 text-sm text-zinc-600">awaiting evidence</p></div>
+                      <div className="border border-zinc-200 p-5 dark:border-zinc-800"><p className="font-mono text-xs uppercase tracking-widest text-zinc-500">Experiment alerts</p><p className="mt-3 font-display text-5xl">{experiments.filter((item) => item.outcome_status === "FAILURE").length}</p><p className="mt-2 text-sm text-zinc-600">failure memories to review</p></div>
+                      <div className="border border-zinc-200 p-5 dark:border-zinc-800"><p className="font-mono text-xs uppercase tracking-widest text-zinc-500">Memory records</p><p className="mt-3 font-display text-5xl">{experiments.length}</p><p className="mt-2 text-sm text-zinc-600">workspace evidence units</p></div>
+                    </div>
+                    <div className="mt-10 border-t border-zinc-200 pt-7 dark:border-zinc-800"><p className="font-mono text-xs uppercase tracking-widest text-zinc-500">BrandMind recommends</p><h2 className="mt-3 font-display text-3xl">{recommendations.length ? `${recommendations.length} actions worth reviewing based on Hindsight memory.` : "Capture the first experiment to activate recommendations."}</h2><div className="mt-5 grid gap-3 md:grid-cols-3">{(recommendations.length ? recommendations : experiments.filter((item) => item.outcome_status === "FAILURE" || item.outcome_status === "INCONCLUSIVE").slice(0, 3).map((item) => `Review ${item.learning} (${item.id || "pending-memory"})`)).map((recommendation) => <div key={recommendation} className="border border-zinc-200 p-4 text-sm dark:border-zinc-800"><p className="font-mono text-xs text-zinc-500">HINDSIGHT / REVIEW</p><p className="mt-2 text-zinc-700 dark:text-zinc-300">{recommendation}</p></div>)}</div></div>
+                  </section>
+                ) : tab === "hq" || tab === "ideas" ? (
                   <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
                     <section className="rounded border border-zinc-200 bg-zinc-50/50 p-5 sm:p-7 lg:col-span-5">
-                      <p className="font-mono text-xs uppercase tracking-widest text-zinc-500">01 / Brand &amp; Strategy</p>
+                      <p className="font-mono text-xs uppercase tracking-widest text-zinc-500">{tab === "hq" ? "02 / Brand HQ & Audience" : "03 / Idea & Content Studio"}</p>
                       <motion.h1 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, delay: 0.08, ease }} className="mt-5 font-display text-4xl tracking-tight sm:text-5xl">Make the brand legible.</motion.h1>
                       <p className="mt-4 text-sm leading-relaxed text-zinc-600">Persistent identity and tone context for every campaign decision.</p>
                       <form onSubmit={saveBrandProfile} className="mt-8 space-y-5">
@@ -660,12 +682,13 @@ export default function Dashboard() {
                       </AnimatePresence>
                     </section>
                   </div>
-                ) : tab === "evaluator" ? (
+                ) : tab === "lab" && labView === "evaluate" ? (
                   <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
                     <section className="rounded border border-zinc-200 bg-zinc-50/50 p-5 sm:p-7 lg:col-span-8">
                       <p className="font-mono text-xs uppercase tracking-widest text-zinc-500">
-                        02 / Evaluator &amp; Review
+                        04 / Campaign &amp; Experiment Lab
                       </p>
+                      <div className="mt-4 flex flex-wrap gap-2"><button type="button" onClick={() => setLabView("evaluate")} className={`rounded-t-md px-3 py-2 font-mono text-xs ${labView === "evaluate" ? "border-b-2 border-zinc-900 font-semibold dark:border-zinc-100" : "text-zinc-500 dark:text-zinc-400"}`}>Evaluator &amp; Review</button><button type="button" onClick={() => setLabView("outcome")} className="rounded-t-md px-3 py-2 font-mono text-xs text-zinc-500 dark:text-zinc-400">Outcome Logger</button></div>
                       <motion.h1 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, delay: 0.08, ease }} className="mt-5 font-serif text-3xl font-normal tracking-tight sm:text-5xl">
                         Intercept the next bad bet.
                       </motion.h1>
@@ -765,11 +788,12 @@ export default function Dashboard() {
                       </p>
                     </aside>
                   </div>
-                ) : tab === "outcome" ? (
+                ) : tab === "lab" && labView === "outcome" ? (
                   <section className="max-w-5xl rounded border border-zinc-200 bg-zinc-50/50 p-5 sm:p-7">
                     <p className="font-mono text-xs uppercase tracking-widest text-zinc-500">
-                      03 / Outcome &amp; Audience Logger
+                      04 / Campaign &amp; Experiment Lab / Outcome Logger
                     </p>
+                    <div className="mt-4 flex flex-wrap gap-2"><button type="button" onClick={() => setLabView("evaluate")} className="rounded-t-md px-3 py-2 font-mono text-xs text-zinc-500 dark:text-zinc-400">Evaluator &amp; Review</button><button type="button" onClick={() => setLabView("outcome")} className="rounded-t-md border-b-2 border-zinc-900 px-3 py-2 font-mono text-xs font-semibold dark:border-zinc-100">Outcome Logger</button></div>
                     <motion.h1 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, delay: 0.08, ease }} className="mt-5 font-serif text-3xl tracking-tight sm:text-5xl">
                       Make the learning durable.
                     </motion.h1>
@@ -918,12 +942,20 @@ export default function Dashboard() {
                       </div>
                     </form>
                   </section>
+                ) : tab === "analytics" ? (
+                  <section className="pb-32">
+                    <p className="font-mono text-xs uppercase tracking-widest text-zinc-500">05 / Funnel &amp; Analytics</p>
+                    <motion.h1 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, delay: 0.08, ease }} className="mt-5 font-display text-4xl tracking-tight sm:text-6xl">Evidence, not decoration.</motion.h1>
+                    <p className="mt-4 max-w-2xl text-sm leading-relaxed text-zinc-600">A compact performance readout sourced from logged outcomes and audience reactions.</p>
+                    <div className="mt-10 grid gap-4 md:grid-cols-3">{["SUCCESS", "FAILURE", "INCONCLUSIVE"].map((status) => <div key={status} className="border border-zinc-200 p-5 dark:border-zinc-800"><p className="font-mono text-xs uppercase tracking-widest text-zinc-500">{status}</p><p className="mt-3 font-display text-5xl">{experiments.filter((item) => item.outcome_status === status).length}</p><p className="mt-2 text-sm text-zinc-600">logged experiments</p></div>)}</div>
+                    <div className="mt-10 border-t border-zinc-200 pt-7 dark:border-zinc-800"><p className="font-mono text-xs uppercase tracking-widest text-zinc-500">Channel evidence</p><div className="mt-4 space-y-3">{experiments.slice(0, 6).map((item) => <div key={item.id} className="flex flex-col gap-2 border-b border-zinc-200 py-3 text-sm dark:border-zinc-800 sm:flex-row sm:items-center sm:justify-between"><span>{item.strategy_used}</span><span className="font-mono text-xs text-zinc-500">{item.result_metrics}</span></div>)}</div></div>
+                  </section>
                 ) : (
                   <section>
                     <div className="flex flex-col justify-between gap-5 border-b border-zinc-200 pb-6 md:flex-row md:items-end">
                       <div>
                         <p className="font-mono text-xs uppercase tracking-widest text-zinc-500">
-                          04 / Memory Timeline
+                          06 / Memory Timeline
                         </p>
                         <motion.h1 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, delay: 0.08, ease }} className="mt-4 font-serif text-3xl tracking-tight sm:text-5xl">
                           How the team got smarter.
@@ -990,10 +1022,10 @@ export default function Dashboard() {
                                   {x.learning}
                                 </span>
                                 <span className="mt-4 flex flex-wrap gap-2 text-left">
-                                  <span className="rounded-sm border border-zinc-200 px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">Strategy: {x.strategy_used}</span>
-                                  <span className="rounded-sm border border-zinc-200 px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">Tier 1: {x.result_metrics}</span>
-                                  <span className="rounded-sm border border-zinc-200 px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">Tier 2: {x.learning}</span>
-                                  {x.strategic_rule && <span className="rounded-sm border border-zinc-200 px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">Tier 3: {x.strategic_rule}</span>}
+                                  <span className="rounded-md border border-zinc-200/80 bg-zinc-100 px-2.5 py-1 font-mono text-xs text-zinc-700 dark:border-zinc-700/60 dark:bg-zinc-800/80 dark:text-zinc-300">Strategy: {x.strategy_used}</span>
+                                  <span className="rounded-md border border-zinc-200/80 bg-zinc-100 px-2.5 py-1 font-mono text-xs text-zinc-700 dark:border-zinc-700/60 dark:bg-zinc-800/80 dark:text-zinc-300">Tier 1: {x.result_metrics}</span>
+                                  <span className="rounded-md border border-zinc-200/80 bg-zinc-100 px-2.5 py-1 font-mono text-xs text-zinc-700 dark:border-zinc-700/60 dark:bg-zinc-800/80 dark:text-zinc-300">Tier 2: {x.learning}</span>
+                                  {x.strategic_rule && <span className="rounded-md border border-zinc-200/80 bg-zinc-100 px-2.5 py-1 font-mono text-xs text-zinc-700 dark:border-zinc-700/60 dark:bg-zinc-800/80 dark:text-zinc-300">Tier 3: {x.strategic_rule}</span>}
                                 </span>
                               </span>
                               <span className="font-mono text-xs uppercase tracking-widest text-zinc-500 md:col-span-3 md:text-right">
